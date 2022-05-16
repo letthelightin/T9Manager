@@ -11,6 +11,8 @@ Install-Package System.Management.Automation
 using Franklin_T9_Manager;              // needed for Resources.AppIcon
 using System.Net.Http;                  // for downloading plink.exe, an SSH by command line app
 using System.Management.Automation;     // for interacting with plink.exe using PowerShell
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Franklin_T9_Manager
 {
@@ -24,6 +26,8 @@ namespace Franklin_T9_Manager
 
         private NotifyIcon trayIcon;
 
+        string address = "192.168.0.1";
+
         public MyCustomApplicationContext()
         {
             trayIcon = new NotifyIcon()
@@ -34,34 +38,67 @@ namespace Franklin_T9_Manager
 
                 Text = "T9 Manager",
 
-            ContextMenuStrip = new ContextMenuStrip()
+                ContextMenuStrip = new ContextMenuStrip()
                 {
-                    Items = {
+                    Items =
+                        {
+                            new ToolStripMenuItem("Reboot", null, MenuReboot),
+                            new ToolStripMenuItem("Ping", null, MenuPing),
 
-                    new ToolStripMenuItem("Reboot", null, Reboot),
-                    new ToolStripMenuItem("Ping", null, Ping),
-                    new ToolStripMenuItem("Exit", null, Exit)
+                            new ToolStripMenuItem(address, null, MenuWebpanel)
+                            {
+                                DropDownItems =
+                                    {
+                                        new ToolStripMenuItem("hidden (frk@r717)", null, MenuHidden),
+                                        new ToolStripMenuItem("webpst (frk@r717)", null, MenuWebPST),
+                                        new ToolStripMenuItem("itadmin (t9_it_@dmin)", null, MenuITAdmin),
+                                        new ToolStripMenuItem("engineering (r717 / frkengr717)", null, MenuEngineering)
+                                    }
+                            },
 
-                    }
+                            new ToolStripMenuItem("Exit", null, MenuExit),
+                        }
 
                 }
             };
         }
 
-        private void Reboot(object? sender, EventArgs e)
-        {       // menu item: Reboot
+        private void MenuReboot(object? sender, EventArgs e)
+        {
             ExecuteSSHCommand("reboot");
         }
 
-        private void Ping(object? sender, EventArgs e)
-        {       // menu item: Ping
-            if (IsOnline("192.168.0.1"))
+        private void MenuPing(object? sender, EventArgs e)
+        {
+            if (IsOnline(address))
             {
                 ShowNotification("T9 is online", "Status", ToolTipIcon.Info, 5000);
                 return;
             }
 
             ShowNotification("T9 is offline", "Status", ToolTipIcon.Warning, 5000);
+        }
+
+        private void MenuWebpanel(object? sender, EventArgs e)
+        {
+            OpenWebsite("http://" + address);
+        }
+
+        private void MenuHidden(object? sender, EventArgs e)
+        {
+            OpenWebsite("http://" + address + "/hidden");
+        }
+        private void MenuWebPST(object? sender, EventArgs e)
+        {
+            OpenWebsite("http://" + address + "/webpst");
+        }
+        private void MenuITAdmin(object? sender, EventArgs e)
+        {
+            OpenWebsite("http://" + address + "/itadmin");
+        }
+        private void MenuEngineering(object? sender, EventArgs e)
+        {
+            OpenWebsite("http://" + address + "/engineering");
         }
 
         private void ExecuteSSHCommand(string command)
@@ -115,7 +152,7 @@ namespace Franklin_T9_Manager
 
         private static async void DownloadFile(string fileURL, string fileDestination)
         {
-            // https://jonathancrozier.com/blog/how-to-download-files-using-c-sharp
+                // https://jonathancrozier.com/blog/how-to-download-files-using-c-sharp
 
             try
             {
@@ -164,11 +201,40 @@ namespace Franklin_T9_Manager
             trayIcon.ShowBalloonTip(seconds * 1000);
         }
 
-        private void Exit(object? sender, EventArgs e)
-        {       // menu item: Exit
+        private void MenuExit(object? sender, EventArgs e)
+        {
             trayIcon.Visible = false;
             Application.Exit();
         }
 
+        private void OpenWebsite(string url)
+        {
+                // https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    url = url.Replace("&", "^&");
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Process.Start("xdg-open", url);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Process.Start("open", url);
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
     }
-} 
+}
