@@ -26,9 +26,12 @@ namespace Franklin_T9_Manager
 
         string address = "192.168.0.1";
 
-        // https://stackoverflow.com/questions/995195/how-can-i-make-a-net-windows-forms-application-that-only-runs-in-the-system-tra
+            // https://stackoverflow.com/questions/995195/how-can-i-make-a-net-windows-forms-application-that-only-runs-in-the-system-tra
 
         private NotifyIcon trayIcon;
+
+        static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private CancellationToken cancellationToken = cancellationTokenSource.Token;
 
         public MyCustomApplicationContext()
         {
@@ -45,7 +48,6 @@ namespace Franklin_T9_Manager
                     Items =
                     {
                         new ToolStripMenuItem("Reboot", null, MenuReboot),
-                        new ToolStripMenuItem("Ping", null, MenuPing),
                         new ToolStripMenuItem(address, null, MenuWebpanel)
                         {
                             DropDownItems =
@@ -63,15 +65,13 @@ namespace Franklin_T9_Manager
                 }
             };
 
-            CancellationToken cancellationToken = new CancellationToken();
-
-            _ = PeriodicCheckConnection(new TimeSpan(0, 0, 3), trayIcon, cancellationToken);
+            _ = PeriodicCheckConnectionUpdateIcon(new TimeSpan(0, 0, 3), trayIcon, cancellationToken);
 
         }
 
         private static async void DownloadFile(string fileURL, string fileDestination)
         {
-            // https://jonathancrozier.com/blog/how-to-download-files-using-c-sharp
+                // https://jonathancrozier.com/blog/how-to-download-files-using-c-sharp
 
             try
             {
@@ -109,7 +109,7 @@ namespace Franklin_T9_Manager
 
         private bool IsOnline(string address)
         {
-            // https://stackoverflow.com/questions/7523741/how-do-you-check-if-a-website-is-online-in-c
+                // https://stackoverflow.com/questions/7523741/how-do-you-check-if-a-website-is-online-in-c
 
             var ping = new System.Net.NetworkInformation.Ping();
 
@@ -168,17 +168,6 @@ namespace Franklin_T9_Manager
             
         }
 
-        private void MenuPing(object? sender, EventArgs e)
-        {
-            if (IsOnline(address))
-            {
-                ShowNotification("T9 is online", "Status", ToolTipIcon.Info, 5000);
-                return;
-            }
-
-            ShowNotification("T9 is offline", "Status", ToolTipIcon.Warning, 5000);
-        }
-
         private void MenuWebpanel(object? sender, EventArgs e)
         {
             OpenWebsite("http://" + address);
@@ -208,6 +197,8 @@ namespace Franklin_T9_Manager
         private void MenuExit(object? sender, EventArgs e)
         {
             trayIcon.Visible = false;
+            cancellationTokenSource.Cancel();
+            trayIcon.Dispose();
 
             Application.Exit();
         }
@@ -240,6 +231,25 @@ namespace Franklin_T9_Manager
                 {
                     throw;
                 }
+            }
+        }
+
+        public async Task PeriodicCheckConnectionUpdateIcon(TimeSpan interval, NotifyIcon trayIcon, CancellationToken cancellationToken)
+        {
+                // https://stackoverflow.com/questions/30462079/run-async-method-regularly-with-specified-interval
+
+            while (true)
+            {
+                if (IsOnline(address))
+                {
+                    trayIcon.Icon = T9Manager.Properties.Resources.t9_online;
+                }
+                else
+                {
+                    trayIcon.Icon = T9Manager.Properties.Resources.t9_offline;
+                };
+
+                await Task.Delay(interval, cancellationToken);
             }
         }
 
@@ -278,25 +288,7 @@ namespace Franklin_T9_Manager
                 System.Windows.Forms.Application.DoEvents();
             }
         }
-
-        public async Task PeriodicCheckConnection(TimeSpan interval, NotifyIcon trayIcon, CancellationToken cancellationToken)
-        {
-                // https://stackoverflow.com/questions/30462079/run-async-method-regularly-with-specified-interval
-
-            while (true)
-            {
-               if ( IsOnline(address) ) 
-                {
-                    trayIcon.Icon = T9Manager.Properties.Resources.t9_online;
-                }
-               else
-                {
-                    trayIcon.Icon = T9Manager.Properties.Resources.t9_offline;
-                };
-
-                await Task.Delay(interval, cancellationToken);
-            }
-        }
+            
 
     }
 }
