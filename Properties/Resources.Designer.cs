@@ -69,5 +69,25 @@ namespace T9Manager.Properties {
                 return ((System.Drawing.Icon)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon t9_offline {
+            get {
+                object obj = ResourceManager.GetObject("t9_offline", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        internal static System.Drawing.Icon t9_online {
+            get {
+                object obj = ResourceManager.GetObject("t9_online", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
     }
 }
