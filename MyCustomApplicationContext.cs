@@ -44,7 +44,6 @@ namespace Franklin_T9_Manager
                         {
                             new ToolStripMenuItem("Reboot", null, MenuReboot),
                             new ToolStripMenuItem("Ping", null, MenuPing),
-
                             new ToolStripMenuItem(address, null, MenuWebpanel)
                             {
                                 DropDownItems =
@@ -55,7 +54,7 @@ namespace Franklin_T9_Manager
                                         new ToolStripMenuItem("engineering (r717 / frkengr717)", null, MenuEngineering)
                                     }
                             },
-
+                            new ToolStripMenuItem("Cheat Sheet", null, MenuCheatSheet),
                             new ToolStripMenuItem("Exit", null, MenuExit),
                         }
 
@@ -99,6 +98,16 @@ namespace Franklin_T9_Manager
         private void MenuEngineering(object? sender, EventArgs e)
         {
             OpenWebsite("http://" + address + "/engineering");
+        }
+        private void MenuCheatSheet(object? sender, EventArgs e)
+        {
+            OpenWebsite("https://docs.google.com/document/d/1LgYLB0sJbwAMW2VfcNoGavIJQhiYCJzsWK4onOFdSys/edit");
+        }
+
+        private void MenuExit(object? sender, EventArgs e)
+        {
+            trayIcon.Visible = false;
+            Application.Exit();
         }
 
         private void ExecuteSSHCommand(string command)
@@ -199,12 +208,6 @@ namespace Franklin_T9_Manager
             trayIcon.BalloonTipTitle = title;
             trayIcon.BalloonTipIcon = icon;
             trayIcon.ShowBalloonTip(seconds * 1000);
-        }
-
-        private void MenuExit(object? sender, EventArgs e)
-        {
-            trayIcon.Visible = false;
-            Application.Exit();
         }
 
         private void OpenWebsite(string url)
