@@ -37,7 +37,7 @@ namespace Franklin_T9_Manager
         {
             trayIcon = new NotifyIcon()
             {
-                Icon = T9Manager.Properties.Resources.AppIcon,
+                Icon = T9Manager.Properties.Resources.t9,
 
                 Visible = true,
 

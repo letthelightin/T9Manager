@@ -7,29 +7,29 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageIcon>t9.png</PackageIcon>
-    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\t9.ico</ApplicationIcon>
     <BaseOutputPath>C:\Users\ROG G752V\Desktop\Build T9Manager</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\AppIconOnline.ico" />
+    <None Remove="Resources\Convertio PNG to ICO Converter.url" />
     <None Remove="Resources\t9 offline.psd" />
     <None Remove="Resources\t9 online.psd" />
     <None Remove="Resources\t9-offline.ico" />
     <None Remove="Resources\t9-offline.png" />
     <None Remove="Resources\t9-online.ico" />
     <None Remove="Resources\t9-online.png" />
+    <None Remove="Resources\t9-source.ico" />
+    <None Remove="Resources\t9-source.png" />
+    <None Remove="Resources\t9.ico" />
     <None Remove="Resources\t9.png" />
+    <None Remove="Resources\t9.psd" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\AppIcon.ico" />
-    <Resource Include="Resources\AppIconOnline.ico" />
-    <Resource Include="Resources\t9 offline.psd" />
-    <Resource Include="Resources\t9 online.psd" />
+    <Resource Include="Resources\Convertio PNG to ICO Converter.url" />
     <Resource Include="Resources\t9-offline.ico" />
     <Resource Include="Resources\t9-offline.png" />
-    <Resource Include="Resources\t9-online.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,11 +38,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\t9-online.ico" />
     <Resource Include="Resources\t9-online.png" />
+    <Resource Include="Resources\t9-source.ico" />
+    <Resource Include="Resources\t9-source.png" />
+    <Resource Include="Resources\t9.ico" />
     <Resource Include="Resources\t9.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </Resource>
+    <Resource Include="Resources\t9.psd" />
   </ItemGroup>
 
   <ItemGroup>
