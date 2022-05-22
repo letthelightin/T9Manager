@@ -11,9 +11,9 @@ Install-Package System.Management.Automation
 using Franklin_T9_Manager;              // needed for Resources.AppIcon
 using System.Net.Http;                  // for downloading plink.exe, an SSH by command line app
 using System.Management.Automation;     // for interacting with plink.exe using PowerShell
-using System.Diagnostics;
+using System.Diagnostics;               // for starting processes in order to open URL in browser window
 using System.Runtime.InteropServices;
-using Microsoft.Win32;
+using Microsoft.Win32;                  // for adding autostart to registry
 
 namespace Franklin_T9_Manager
 {
@@ -21,20 +21,21 @@ namespace Franklin_T9_Manager
     {
             // https://stackoverflow.com/questions/15653921/get-current-folder-path
 
-        static string strWorkPath = System.AppDomain.CurrentDomain.BaseDirectory;
-        static string plink = strWorkPath + "plink.exe";
+        static string directory = System.AppDomain.CurrentDomain.BaseDirectory;
+        static string plink = directory + "plink.exe";
 
         string address = "192.168.0.1";
+
+        string clipboard = "";
+
 
             // https://stackoverflow.com/questions/995195/how-can-i-make-a-net-windows-forms-application-that-only-runs-in-the-system-tra
 
         private NotifyIcon trayIcon;
 
-        static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private CancellationToken cancellationToken = cancellationTokenSource.Token;
-
         public MyCustomApplicationContext()
         {
+
             trayIcon = new NotifyIcon()
             {
                 Icon = T9Manager.Properties.Resources.t9,
@@ -45,6 +46,8 @@ namespace Franklin_T9_Manager
 
                 ContextMenuStrip = new ContextMenuStrip()
                 {
+                    ShowCheckMargin = false,
+                    ShowImageMargin = false,
                     Items =
                     {
                         new ToolStripMenuItem("Reboot", null, MenuReboot),
@@ -52,21 +55,34 @@ namespace Franklin_T9_Manager
                         {
                             DropDownItems =
                             {
-                                new ToolStripMenuItem("hidden (frk@r717)", null, MenuHidden),
-                                new ToolStripMenuItem("webpst (frk@r717)", null, MenuWebPST),
-                                new ToolStripMenuItem("itadmin (t9_it_@dmin)", null, MenuITAdmin),
-                                new ToolStripMenuItem("engineering (r717 / frkengr717)", null, MenuEngineering)
+                                new ToolStripMenuItem("hidden", null, MenuHidden),
+                                new ToolStripMenuItem("webpst", null, MenuWebPST),
+
+
+
+                                new ToolStripMenuItem("itadmin", null, MenuITAdmin),
+                                new ToolStripMenuItem("engineering", null, MenuEngineering)
                             }
+                            
                         },
-                        new ToolStripMenuItem("Cheat Sheet", null, MenuCheatSheet),
+                        new ToolStripMenuItem("Speed Test", null, MenuSpeedTest),
+                        new ToolStripMenuItem("About T9", null, MenuAbout),
+                        new ToolStripMenuItem("Autostart", null, MenuAutostart),
                         new ToolStripMenuItem("Exit", null, MenuExit),
                     }
 
                 }
             };
 
-            _ = PeriodicCheckConnectionUpdateIcon(new TimeSpan(0, 0, 3), trayIcon, cancellationToken);
+            _ = PeriodicCheckConnectionUpdateIcon(new TimeSpan(0, 0, 2), trayIcon);
+        }
 
+        void CopyToClipBoard(object sender, EventArgs e)
+        {
+            if (clipboard != "")
+            {
+                Clipboard.SetText(clipboard);
+            }
         }
 
         private static async void DownloadFile(string fileURL, string fileDestination)
@@ -99,7 +115,7 @@ namespace Franklin_T9_Manager
                 command = "& '" + plink + "' -ssh 192.168.0.1 -l root -batch -pw frk9x07 -a " + command + " 2>&1";
 
                 // // FOR DEBUGGING // //
-                System.Windows.Forms.Clipboard.SetText(command);
+                //System.Windows.Forms.Clipboard.SetText(command);
 
                 PowerShell ps = PowerShell.Create();
                 ps.AddScript(command);
@@ -107,13 +123,13 @@ namespace Franklin_T9_Manager
             }
         }
 
-        private bool IsOnline(string address)
+        private bool IsT9Connected(string address)
         {
                 // https://stackoverflow.com/questions/7523741/how-do-you-check-if-a-website-is-online-in-c
 
             var ping = new System.Net.NetworkInformation.Ping();
 
-            var result = ping.Send(address);
+            var result = ping.Send(address, 150);
 
             if (result.Status != System.Net.NetworkInformation.IPStatus.Success)
             { return false; }
@@ -144,7 +160,7 @@ namespace Franklin_T9_Manager
                     }
                     else
 
-                        ShowNotification("Placed in the current working directory", "plink.exe download complete", ToolTipIcon.Info, 5000);
+                    ShowNotification("Placed in the current working directory", "plink.exe download complete", ToolTipIcon.Info, 5000);
 
                     return true;
                 }
@@ -157,7 +173,7 @@ namespace Franklin_T9_Manager
 
         private void MenuReboot(object? sender, EventArgs e)
         {
-            if (IsOnline(address))
+            if (IsT9Connected(address))
             {
                 ExecuteSSHCommand("reboot");
             }
@@ -176,28 +192,79 @@ namespace Franklin_T9_Manager
         private void MenuHidden(object? sender, EventArgs e)
         {
             OpenWebsite("http://" + address + "/hidden/debug-lte_engineering.html");
+
+            clipboard = "frk@r717";
+
+            ShowNotification("password: frk@r717", "Click to copy password", ToolTipIcon.Info, 5);
         }
+        
         private void MenuWebPST(object? sender, EventArgs e)
         {
             OpenWebsite("http://" + address + "/webpst/fota_test.html");
+
+            clipboard = "frk@r717";
+
+            ShowNotification("password: frk@r717", "Click to copy password", ToolTipIcon.Info, 5);
         }
+        
         private void MenuITAdmin(object? sender, EventArgs e)
         {
             OpenWebsite("http://" + address + "/itadmin/admin_configuration-wifi_basic.html");
+
+            clipboard = "t9_it_@dmin";
+
+            ShowNotification("password: t9_it_@dmin", "Click to copy password", ToolTipIcon.Info, 5);
         }
+        
         private void MenuEngineering(object? sender, EventArgs e)
         {
             OpenWebsite("http://" + address + "/engineering/franklin/imei_mac.html");
+
+            clipboard = "frkengr717";
+
+            System.Text.StringBuilder HTMLString = new ();
+
+            ShowNotification("user: r717 password: frkengr717", "Click to copy password", ToolTipIcon.Info, 5);
         }
+        
         private void MenuCheatSheet(object? sender, EventArgs e)
         {
             OpenWebsite("https://docs.google.com/document/d/1LgYLB0sJbwAMW2VfcNoGavIJQhiYCJzsWK4onOFdSys/edit");
+        }
+        
+        private void MenuAbout(object? sender, EventArgs e)
+        {
+            OpenWebsite("https://docs.google.com/document/d/1LgYLB0sJbwAMW2VfcNoGavIJQhiYCJzsWK4onOFdSys/edit");
+        }
+
+        private void MenuSpeedTest(object? sender, EventArgs e)
+        {
+            OpenWebsite("https://librespeed.org/");
+        }
+
+        private void MenuAutostart(object? sender, EventArgs e)
+        {
+                // https://stackoverflow.com/questions/12814584/check-mark-and-image-next-to-mainmenu-item
+
+            RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+
+
+            if ((string)key.GetValue("T9Manager") != Application.ExecutablePath)
+            {
+                key.SetValue("T9Manager", Application.ExecutablePath);
+                SmallNotification("Autostart Enabled");
+            }
+            else
+            {
+                key.DeleteValue("T9Manager", false);
+                SmallNotification("Autostart Disabled");
+            };
+
         }
 
         private void MenuExit(object? sender, EventArgs e)
         {
             trayIcon.Visible = false;
-            cancellationTokenSource.Cancel();
             trayIcon.Dispose();
 
             Application.Exit();
@@ -234,47 +301,47 @@ namespace Franklin_T9_Manager
             }
         }
 
-        public async Task PeriodicCheckConnectionUpdateIcon(TimeSpan interval, NotifyIcon trayIcon, CancellationToken cancellationToken)
+        public async Task PeriodicCheckConnectionUpdateIcon(TimeSpan interval, NotifyIcon trayIcon)
         {
                 // https://stackoverflow.com/questions/30462079/run-async-method-regularly-with-specified-interval
 
+            bool online = IsT9Connected(address);
+
             while (true)
             {
-                if (IsOnline(address))
+
+                if (IsT9Connected(address))
                 {
                     trayIcon.Icon = T9Manager.Properties.Resources.t9_online;
+                    if (!online) { SmallNotification("T9 is Online"); }
+                    online = true;
                 }
                 else
                 {
                     trayIcon.Icon = T9Manager.Properties.Resources.t9_offline;
+                    if (online) { SmallNotification("T9 is Offline"); }
+                    online = false;
                 };
-
-                await Task.Delay(interval, cancellationToken);
+                
+                await Task.Delay(interval);
             }
         }
 
-        private void RegisterInStartup(bool isChecked)
-        {
-                // https://stackoverflow.com/questions/5089601/how-to-run-a-c-sharp-application-at-windows-startup
-
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey
-                    ("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-
-            if (isChecked)
-            {
-                registryKey.SetValue("T9Manager", Application.ExecutablePath);
-            }
-            else
-            {
-                registryKey.DeleteValue("T9Manager");
-            }
-        }
         private void ShowNotification(string text, string title, ToolTipIcon icon, int seconds)
         {
             trayIcon.BalloonTipText = text;
             trayIcon.BalloonTipTitle = title;
             trayIcon.BalloonTipIcon = icon;
             trayIcon.ShowBalloonTip(seconds * 1000);
+            trayIcon.BalloonTipClicked += CopyToClipBoard;
+        }
+
+        private void SmallNotification(string text)
+        {
+            trayIcon.BalloonTipText = text;
+            trayIcon.BalloonTipTitle = "";
+            trayIcon.BalloonTipIcon = ToolTipIcon.None;
+            trayIcon.ShowBalloonTip(3000);
         }
 
         private void WaitNSeconds(int seconds)
