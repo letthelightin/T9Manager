@@ -1,7 +1,10 @@
 ﻿2022.04.28 Franklin T9 Manager - controls a Franklin T9 (r717) Hotspot device over SSH via plink.exe and PowerShell
+
 Made using Visual Studio 2022 (64 Bit) Community Edition, written in C#
+
 Publish settings: Release-anycpu, Framework-dependent, net6.0-windows, Portable
 
+Detailed documentation on the Franklin T9 (r717) 4G Hotspot https://docs.google.com/document/d/1LgYLB0sJbwAMW2VfcNoGavIJQhiYCJzsWK4onOFdSys/edit
 
 Features include:
 
@@ -15,7 +18,7 @@ Features include:
 
 Future features:
 
-- connection (band and signal strength) and data usage info on a popup
+- connection (band and signal strength) and data usage info on a bubble popup
 
 - band selection menu
 

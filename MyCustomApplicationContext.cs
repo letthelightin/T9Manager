@@ -74,7 +74,7 @@ namespace Franklin_T9_Manager
                 }
             };
 
-            _ = PeriodicCheckConnectionUpdateIcon(new TimeSpan(0, 0, 2), trayIcon);
+            _ = PeriodicCheckConnectionUpdateIcon(new TimeSpan(0, 0, 1), trayIcon);
         }
 
         void CopyToClipBoard(object sender, EventArgs e)
@@ -303,24 +303,40 @@ namespace Franklin_T9_Manager
 
         public async Task PeriodicCheckConnectionUpdateIcon(TimeSpan interval, NotifyIcon trayIcon)
         {
-                // https://stackoverflow.com/questions/30462079/run-async-method-regularly-with-specified-interval
+            // https://stackoverflow.com/questions/30462079/run-async-method-regularly-with-specified-interval
 
-            bool online = IsT9Connected(address);
+            var ping = new System.Net.NetworkInformation.Ping();
+            var result = ping.Send(address, 3);
+            bool lastStatus = (result.Status == System.Net.NetworkInformation.IPStatus.Success);
+            bool presentStatus = lastStatus;
 
             while (true)
             {
+            recheck:
 
-                if (IsT9Connected(address))
+                result = ping.Send(address, 3);
+                presentStatus = (result.Status == System.Net.NetworkInformation.IPStatus.Success);
+
+                await Task.Delay(30);
+
+                result = ping.Send(address, 3);
+                if (presentStatus != (result.Status == System.Net.NetworkInformation.IPStatus.Success) )
+                {
+                    goto recheck;
+                }
+
+                if (presentStatus)
                 {
                     trayIcon.Icon = T9Manager.Properties.Resources.t9_online;
-                    if (!online) { SmallNotification("T9 is Online"); }
-                    online = true;
+
+                    if (presentStatus != lastStatus) { SmallNotification("T9 is Online"); }
+                    lastStatus = true;
                 }
                 else
                 {
                     trayIcon.Icon = T9Manager.Properties.Resources.t9_offline;
-                    if (online) { SmallNotification("T9 is Offline"); }
-                    online = false;
+                    if (presentStatus != lastStatus) { SmallNotification("T9 is Offline"); }
+                    lastStatus = false;
                 };
                 
                 await Task.Delay(interval);
