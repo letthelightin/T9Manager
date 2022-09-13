@@ -19,7 +19,7 @@ namespace Franklin_T9_Manager
 {
     public class MyCustomApplicationContext : ApplicationContext
     {
-            // https://stackoverflow.com/questions/15653921/get-current-folder-path
+        // https://stackoverflow.com/questions/15653921/get-current-folder-path
 
         static string directory = System.AppDomain.CurrentDomain.BaseDirectory;
         static string plink = directory + "plink.exe";
@@ -29,12 +29,41 @@ namespace Franklin_T9_Manager
         string clipboard = "";
 
 
-            // https://stackoverflow.com/questions/995195/how-can-i-make-a-net-windows-forms-application-that-only-runs-in-the-system-tra
+        // https://stackoverflow.com/questions/995195/how-can-i-make-a-net-windows-forms-application-that-only-runs-in-the-system-tra
 
         private NotifyIcon trayIcon;
 
         public MyCustomApplicationContext()
         {
+            ContextMenuStrip contextMenuStrip = new()
+            {
+                ShowCheckMargin = true,
+                ShowImageMargin = false,
+                Font = new System.Drawing.Font("Segoe UI", 10),
+                Items =
+                    {
+
+                        new ToolStripMenuItem("Reboot", null, MenuReboot),
+                        new ToolStripMenuItem(address, null, MenuWebpanel)
+                        {
+                            DropDownItems =
+                            {   
+                                new ToolStripMenuItem("hidden", null, MenuHidden),
+                                new ToolStripMenuItem("webpst", null, MenuWebPST),
+                                new ToolStripMenuItem("itadmin", null, MenuITAdmin),
+                                new ToolStripMenuItem("engineering", null, MenuEngineering),
+                            }
+
+                        },
+                        new ToolStripMenuItem("Speed Test", null, MenuSpeedTest),
+                        new ToolStripMenuItem("About T9", null, MenuAbout),
+                        new ToolStripMenuItem("Autostart", null, MenuAutostart),
+                        new ToolStripMenuItem("Exit", null, MenuExit),
+                    }
+            };
+
+            // the following line introduces the windows 10 dark grey on grey menu theme via MyRenderer.cs
+            contextMenuStrip.Renderer = new MyRenderer();
 
             trayIcon = new NotifyIcon()
             {
@@ -44,50 +73,26 @@ namespace Franklin_T9_Manager
 
                 Text = "T9 Manager",
 
-                ContextMenuStrip = new ContextMenuStrip()
-                {
-                    ShowCheckMargin = false,
-                    ShowImageMargin = false,
-                    Items =
-                    {
-                        new ToolStripMenuItem("Reboot", null, MenuReboot),
-                        new ToolStripMenuItem(address, null, MenuWebpanel)
-                        {
-                            DropDownItems =
-                            {
-                                new ToolStripMenuItem("hidden", null, MenuHidden),
-                                new ToolStripMenuItem("webpst", null, MenuWebPST),
-
-
-
-                                new ToolStripMenuItem("itadmin", null, MenuITAdmin),
-                                new ToolStripMenuItem("engineering", null, MenuEngineering)
-                            }
-                            
-                        },
-                        new ToolStripMenuItem("Speed Test", null, MenuSpeedTest),
-                        new ToolStripMenuItem("About T9", null, MenuAbout),
-                        new ToolStripMenuItem("Autostart", null, MenuAutostart),
-                        new ToolStripMenuItem("Exit", null, MenuExit),
-                    }
-
-                }
+                ContextMenuStrip = contextMenuStrip
             };
 
+            this.trayIcon.MouseClick += new MouseEventHandler(TrayIconClick);
+
             _ = PeriodicCheckConnectionUpdateIcon(new TimeSpan(0, 0, 1), trayIcon);
+
         }
 
         void CopyToClipBoard(object sender, EventArgs e)
         {
             if (clipboard != "")
             {
-                Clipboard.SetText(clipboard);
+                Clipboard.SetDataObject(clipboard, true, 2, 2);
             }
         }
 
         private static async void DownloadFile(string fileURL, string fileDestination)
         {
-                // https://jonathancrozier.com/blog/how-to-download-files-using-c-sharp
+            // https://jonathancrozier.com/blog/how-to-download-files-using-c-sharp
 
             try
             {
@@ -107,8 +112,8 @@ namespace Franklin_T9_Manager
 
         private void ExecuteSSHCommand(string command)
         {
-                // https://stackoverflow.com/questions/56110410/run-a-powershell-script-from-c-sharp
-                // https://docs.microsoft.com/en-us/powershell/scripting/developer/prog-guide/runspace01-csharp-code-sample?view=powershell-7.2
+            // https://stackoverflow.com/questions/56110410/run-a-powershell-script-from-c-sharp
+            // https://docs.microsoft.com/en-us/powershell/scripting/developer/prog-guide/runspace01-csharp-code-sample?view=powershell-7.2
 
             if (IsPlinkAvailable())
             {
@@ -123,9 +128,12 @@ namespace Franklin_T9_Manager
             }
         }
 
-        private bool IsT9Connected(string address)
+
+        private bool IsT9Connected()
         {
-                // https://stackoverflow.com/questions/7523741/how-do-you-check-if-a-website-is-online-in-c
+            // https://stackoverflow.com/questions/7523741/how-do-you-check-if-a-website-is-online-in-c
+
+            string address = "192.168.0.1";
 
             var ping = new System.Net.NetworkInformation.Ping();
 
@@ -170,10 +178,14 @@ namespace Franklin_T9_Manager
             }
             else { return true; }
         }
+        
+        private void DoNothingSpacer(object? sender, EventArgs e)
+        {
+        }
 
         private void MenuReboot(object? sender, EventArgs e)
         {
-            if (IsT9Connected(address))
+            if (IsT9Connected())
             {
                 ExecuteSSHCommand("reboot");
             }
@@ -181,7 +193,7 @@ namespace Franklin_T9_Manager
             {
                 ShowNotification("T9 is not connected", "Reboot Command Not Sent", ToolTipIcon.Error, 5000);
             }
-            
+
         }
 
         private void MenuWebpanel(object? sender, EventArgs e)
@@ -244,7 +256,7 @@ namespace Franklin_T9_Manager
 
         private void MenuAutostart(object? sender, EventArgs e)
         {
-                // https://stackoverflow.com/questions/12814584/check-mark-and-image-next-to-mainmenu-item
+            // https://stackoverflow.com/questions/12814584/check-mark-and-image-next-to-mainmenu-item
 
             RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 
@@ -272,7 +284,7 @@ namespace Franklin_T9_Manager
 
         private void OpenWebsite(string url)
         {
-                // https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+            // https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
 
             try
             {
@@ -305,30 +317,15 @@ namespace Franklin_T9_Manager
         {
             // https://stackoverflow.com/questions/30462079/run-async-method-regularly-with-specified-interval
 
-            var ping = new System.Net.NetworkInformation.Ping();
-            var result = ping.Send(address, 3);
-            bool lastStatus = (result.Status == System.Net.NetworkInformation.IPStatus.Success);
+            bool lastStatus = IsT9Connected();
             bool presentStatus = lastStatus;
 
             while (true)
             {
-            recheck:
-
-                result = ping.Send(address, 3);
-                presentStatus = (result.Status == System.Net.NetworkInformation.IPStatus.Success);
-
-                await Task.Delay(30);
-
-                result = ping.Send(address, 3);
-                if (presentStatus != (result.Status == System.Net.NetworkInformation.IPStatus.Success) )
-                {
-                    goto recheck;
-                }
-
                 if (presentStatus)
                 {
                     trayIcon.Icon = T9Manager.Properties.Resources.t9_online;
-
+                    
                     if (presentStatus != lastStatus) { SmallNotification("T9 is Online"); }
                     lastStatus = true;
                 }
@@ -338,8 +335,10 @@ namespace Franklin_T9_Manager
                     if (presentStatus != lastStatus) { SmallNotification("T9 is Offline"); }
                     lastStatus = false;
                 };
-                
+
                 await Task.Delay(interval);
+                
+                presentStatus = IsT9Connected();
             }
         }
 
@@ -357,12 +356,31 @@ namespace Franklin_T9_Manager
             trayIcon.BalloonTipText = text;
             trayIcon.BalloonTipTitle = "";
             trayIcon.BalloonTipIcon = ToolTipIcon.None;
-            trayIcon.ShowBalloonTip(3000);
+            trayIcon.ShowBalloonTip(2000);
+        }
+
+        private void TrayIconClick(object? sender, MouseEventArgs e)
+        {
+            // https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.notifyicon.mousedoubleclick?view=windowsdesktop-6.0
+
+            if (e.Button == MouseButtons.Left)
+            {
+                //SmallNotification("TrayIconClick Left");
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                //SmallNotification("TrayIconClick Right");
+            }
+            else if (e.Button == MouseButtons.Middle)
+            {
+                //SmallNotification("TrayIconClick Middle");
+            };
+
         }
 
         private void WaitNSeconds(int seconds)
         {
-                // https://stackoverflow.com/questions/22158278/wait-some-seconds-without-blocking-ui-execution
+            // https://stackoverflow.com/questions/22158278/wait-some-seconds-without-blocking-ui-execution
 
             if (seconds < 1) return;
             DateTime _desired = DateTime.Now.AddSeconds(seconds);

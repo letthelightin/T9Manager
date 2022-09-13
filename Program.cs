@@ -9,7 +9,6 @@ namespace Franklin_T9_Manager
         {
             ApplicationConfiguration.Initialize();
             Application.Run(new MyCustomApplicationContext());
-
         }
     }
 }
